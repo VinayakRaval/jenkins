@@ -1,39 +1,36 @@
 pipeline {
     agent any
-    
+
     tools {
-        maven 'maven'
+        maven 'Maven-3'
     }
-    
+
     stages {
-        stage('code') {
+        stage('Checkout Code') {
             steps {
-                git url: 'https://github.com/devopsbyraham/jenkins-java-project.git'
+                git url: 'https://github.com/VinayakRaval/jenkins.git'
             }
         }
-        stage('build') {
+
+        stage('Build') {
             steps {
-                sh 'mvn compile'
+                sh 'mvn clean install -DskipTests'
             }
         }
-        stage('test') {
+
+        stage('Upload to S3') {
             steps {
-                sh 'mvn test'
+                s3Upload(
+                    bucket: 'artifactbucketfornetflixapp',
+                    region: 'ap-south-1',
+                    file: 'target/NETFLIX.war'
+                )
             }
         }
-        stage('artifact') {
+
+        stage('Deploy') {
             steps {
-                sh 'mvn package'
-            }
-        }
-        stage('s3') {
-            steps {
-                s3Upload consoleLogLevel: 'INFO', dontSetBuildResultOnFailure: false, dontWaitForConcurrentBuildCompletion: false, entries: [[bucket: 'artifactbucketfornetflixapp', excludedFile: '', flatten: false, gzipFiles: false, keepForever: false, managedArtifacts: false, noUploadOnFailure: false, selectedRegion: 'ap-south-1', showDirectlyInBrowser: false, sourceFile: 'target/NETFLIX-1.2.2.war', storageClass: 'STANDARD', uploadFromSlave: false, useServerSideEncryption: false]], pluginFailureResultConstraint: 'FAILURE', profileName: 'raham', userMetadata: []
-            }
-        }
-        stage('deploy') {
-            steps {
-                echo "my code is deployed"
+                echo "Application Deployed Successfully 🚀"
             }
         }
     }
